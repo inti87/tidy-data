@@ -99,12 +99,27 @@ names_old <- df %>% colnames() ### store current (old) column names
 ### rename old names using Regex (we would like to have more informative labels)
 names_new <- names_old %>% 
   str_replace(string = ., pattern = "^t", replacement = "time ") %>%           # replace "t" at the beginning for "time"
-  str_replace(string = ., pattern = "^f", replacement = "filtered ") %>%       # replace "f" at the beginning for "filtered"
-  str_replace(string = ., pattern = "Body", replacement = "body ") %>%         # replace "Body" for "body"
+  str_replace(string = ., pattern = "^f", replacement = "frequency ") %>%      # replace "f" at the beginning for "frequency"
+  str_replace_all(string = ., pattern = "Body", replacement = "body ") %>%     # replace "Body" for "body"
   str_replace(string = ., pattern = "Gravity", replacement = "gravity ") %>%   # replace "Gravity" for "gravity"
   str_replace(string = ., pattern = "Acc", replacement = "accelerometer") %>%  # replace "Acc" for "accelerometer"
-  str_replace(string = ., pattern = "Gyro", replacement = "gyroscope")      # replace "Gyro" for "gyroscope"
-  
+  str_replace(string = ., pattern = "Gyro", replacement = "gyroscope") %>%     # replace "Gyro" for "gyroscope"
+  str_replace(string = ., pattern = "Jerk", replacement = " jerk") %>%         # replace "Jerk" for "jerk"
+  str_replace(string = ., pattern = "Mag", replacement = " magnitude") %>%     # replace "Mag" for "magnitude"
+  str_replace(string = ., pattern = "X$", replacement = "X direction") %>%     # replace "X" for "X direction"
+  str_replace(string = ., pattern = "Y$", replacement = "Y direction") %>%     # replace "Y" for "Y direction"
+  str_replace(string = ., pattern = "Z$", replacement = "Z direction") %>%     # replace "Z" for "Z direction"
+  data.frame(old = names_old, new = .) %>%   # create a data frame of old VS new names
+  # add flag for mean and std variable
+  mutate(type_of_var = case_when(str_detect(string = new, pattern = "-mean") ~ "mean",
+                                 str_detect(string = new, pattern = "-std")  ~ "std",
+                                 T ~ "NA")) %>% 
+  # add prefix for mean or std variables
+  mutate(new = case_when(type_of_var == "mean" ~ paste0("mean of ", new),
+                         type_of_var == "std" ~ paste0("standard deviation of ", new),
+                         T ~ new)) %>% 
+  mutate(new = gsub(x = new, pattern = "mean\\(\\)|std\\(\\)", replacement = ""),
+         new = str_replace_all(string = new, pattern = "-", replacement = " "))
 
 
 
