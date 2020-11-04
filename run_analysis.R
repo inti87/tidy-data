@@ -2,6 +2,9 @@
 
 # author: Marko intihar
 
+# Main script to clean raw data and prepare tidy data
+# For more details check files "CODE_BOOK.txt" & "README.md"
+
 graphics.off()
 rm(list = ls())
 
@@ -141,3 +144,5 @@ colnames(df_tidy_average) <- c(colnames(df_tidy_average[1:2]),
 
 # Export aggregated tidy data set
 write.table(x = df_tidy_average, file = "data_tidy.txt", row.name = FALSE, sep = "\t") 
+
+
