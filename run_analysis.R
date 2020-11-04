@@ -55,7 +55,6 @@ feature_names   <- fread(file = paste0(path_data, "/features.txt")) %>% pull(2) 
 activity_labels <- fread(file = paste0(path_data, "/activity_labels.txt"))  # activity labels  
 
 
-
 # Add column names to imported data sets
 colnames(X_train) <- feature_names
 colnames(y_train) <- "label"
@@ -64,7 +63,6 @@ colnames(X_test) <- feature_names
 colnames(y_test) <- "label"
 colnames(subject_test) <- "subject"
 colnames(activity_labels) <- c("label", "activity")
-
 
 # Merge training and test data sets
 #  - first bind column wise feature-label then row wise train test data set
@@ -77,7 +75,7 @@ df <- bind_rows(bind_cols(X_train, subject_train, y_train),
 ### grab only relevant columns using Regex
 columns_keep <- df %>% 
   colnames() %>% 
-  str_detect(string = ., pattern = "mean()|std()|subject|label") %>% 
+  grepl(x = ., pattern = "mean\\(\\)|std\\(\\)|subject|label") %>% 
   which(. == T)
 
 ### keep only relevant columns
@@ -90,8 +88,23 @@ df <- df %>%
   mutate(activity_ = str_replace(string = tolower(activity),       # change activity to lower case and remove "_"
                                  pattern = "_", replacement = " ")) %>% 
   select(-c("label", "activity")) %>% # drop old activity names and label column
-  rename(activity = activity_) # rename activity column
+  rename(activity = activity_) %>%  # rename activity column
+  select(subject, activity, everything()) # rearrange columns
+    
 
-        
+# Create descriptive variable names
+
+names_old <- df %>% colnames() ### store current (old) column names
+
+### rename old names using Regex (we would like to have more informative labels)
+names_new <- names_old %>% 
+  str_replace(string = ., pattern = "^t", replacement = "time ") %>%           # replace "t" at the beginning for "time"
+  str_replace(string = ., pattern = "^f", replacement = "filtered ") %>%       # replace "f" at the beginning for "filtered"
+  str_replace(string = ., pattern = "Body", replacement = "body ") %>%         # replace "Body" for "body"
+  str_replace(string = ., pattern = "Gravity", replacement = "gravity ") %>%   # replace "Gravity" for "gravity"
+  str_replace(string = ., pattern = "Acc", replacement = "accelerometer") %>%  # replace "Acc" for "accelerometer"
+  str_replace(string = ., pattern = "Gyro", replacement = "gyroscope")      # replace "Gyro" for "gyroscope"
+  
+
 
 
