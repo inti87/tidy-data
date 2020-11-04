@@ -12,9 +12,18 @@ source("package_check.R") # load or install & load list of packages
 
 
 # Download & unzip the data
+
+### first create folder for storing raw data
+if(!dir.exists(paths = "./data_raw")){
+  dir.create(path = "./data_raw") 
+}
+
+### download zip folder
 download.file(url = "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip", 
               destfile = "./data_raw/data.zip")
-unzip(zipfile = "./data_raw/data.zip", exdir = "./data_raw", overwrite = T, )
+
+### unzip zip folder
+unzip(zipfile = "./data_raw/data.zip", exdir = "./data_raw", overwrite = T)
 
 
 # Load data
@@ -63,8 +72,25 @@ df <- bind_rows(bind_cols(X_train, subject_train, y_train),
                 bind_cols(X_test,  subject_test,  y_test))
 
 
+# Extract only measurements on mean & std
+
+### grab only relevant columns using Regex
+columns_keep <- df %>% 
+  colnames() %>% 
+  str_detect(string = ., pattern = "mean()|std()|subject|label") %>% 
+  which(. == T)
+
+### keep only relevant columns
+df <- df %>% select(all_of(columns_keep))
 
 
+# Add descriptive activity names
+df <- df %>% 
+  left_join(x = ., y = activity_labels, by = "label") %>%  # first merge df & activity_labels (to get names)
+  mutate(activity_ = str_replace(string = tolower(activity),       # change activity to lower case and remove "_"
+                                 pattern = "_", replacement = " ")) %>% 
+  select(-c("label", "activity")) %>% # drop old activity names and label column
+  rename(activity = activity_) # rename activity column
 
         
 
