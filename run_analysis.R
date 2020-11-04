@@ -66,25 +66,25 @@ colnames(activity_labels) <- c("label", "activity")
 
 # Merge training and test data sets
 #  - first bind column wise feature-label then row wise train test data set
-df <- bind_rows(bind_cols(X_train, subject_train, y_train),
+df_tidy <- bind_rows(bind_cols(X_train, subject_train, y_train),
                 bind_cols(X_test,  subject_test,  y_test))
 
 
 # Extract only measurements on mean & std
 
 ### grab only relevant columns using Regex
-columns_keep <- df %>% 
+columns_keep <- df_tidy %>% 
   colnames() %>% 
   grepl(x = ., pattern = "mean\\(\\)|std\\(\\)|subject|label") %>% 
   which(. == T)
 
 ### keep only relevant columns
-df <- df %>% select(all_of(columns_keep))
+df_tidy <- df_tidy %>% select(all_of(columns_keep))
 
 
 # Add descriptive activity names
-df <- df %>% 
-  left_join(x = ., y = activity_labels, by = "label") %>%  # first merge df & activity_labels (to get names)
+df_tidy <- df_tidy %>% 
+  left_join(x = ., y = activity_labels, by = "label") %>%  # first merge df_tidy & activity_labels (to get names)
   mutate(activity_ = str_replace(string = tolower(activity),       # change activity to lower case and remove "_"
                                  pattern = "_", replacement = " ")) %>% 
   select(-c("label", "activity")) %>% # drop old activity names and label column
@@ -94,7 +94,7 @@ df <- df %>%
 
 # Create descriptive variable names
 
-names_old <- df %>% colnames() ### store current (old) column names
+names_old <- df_tidy %>% colnames() ### store current (old) column names
 
 ### rename old names using Regex (we would like to have more informative labels)
 names_new <- names_old %>% 
@@ -121,5 +121,23 @@ names_new <- names_old %>%
   mutate(new = gsub(x = new, pattern = "mean\\(\\)|std\\(\\)", replacement = ""),
          new = str_replace_all(string = new, pattern = "-", replacement = " "))
 
+### rename tidy data frame columns
+colnames(df_tidy) <- names_new %>% pull(new)
 
 
+# remove some temporary objects from workspace
+rm(names_new, names_old, package.check, columns_keep, path_data, path_data_train, path_data_test, activity_labels)
+
+
+# Create average of each variable per subject & activity
+df_tidy_average <- df_tidy %>% 
+  group_by(subject, activity) %>%       # group data per subject and activity
+  summarise_all(.tbl = ., .funs = mean) # calculate average of each variable
+
+### rename columns
+colnames(df_tidy_average) <- c(colnames(df_tidy_average[1:2]),
+                               paste0("average of ", colnames(df_tidy_average[3:ncol(df_tidy_average)])))
+
+
+# Export aggregated tidy data set
+write.table(x = df_tidy_average, file = "data_tidy.txt", row.name = FALSE, sep = "\t") 
