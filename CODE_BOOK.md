@@ -29,7 +29,9 @@ The produced tidy data by our priocedure is additionally **aggregted**. This agg
 
 ### Detailed raw data description
 
-After you run this procedure (main R script) you will obtain all raw data in your currewnt working directory. This folder also includes detail description of raw data. **README** file casn be found here: *./data_raw/UCI HAR Dataset/README.txt*.
+After you run this procedure (main R script) you will obtain all raw data in your currewnt working directory. This folder also includes detail description of raw data. **README** file casn be found here (path to folder): 
+
+**./data_raw/UCI HAR Dataset/README.txt**.
 
 
 
